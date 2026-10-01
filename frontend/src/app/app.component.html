@@ -1,0 +1,221 @@
+<main class="app-shell">
+  <header class="topbar">
+    <a class="brand" href="/" aria-label="Pulse, home">
+      <span class="brand-mark" aria-hidden="true">P</span>
+      <span>PULSE<span class="brand-dot">.</span></span>
+    </a>
+    <div class="session-label">
+      <span class="live-indicator"></span>
+      WORKOUT SESSION
+    </div>
+    <span class="topbar-tag">LIVE MODE</span>
+  </header>
+
+  <section class="page-heading">
+    <div>
+      <p class="eyebrow">YOUR TRAINING SPACE</p>
+      <h1>Active <span>workout</span></h1>
+      <p class="heading-copy">
+        Organize your exercises. Keep your pace. Push your limits.
+      </p>
+    </div>
+    <div class="date-chip">
+      <span class="date-icon" aria-hidden="true">◷</span>
+      LIVE SEQUENCE
+    </div>
+  </section>
+
+  <section class="stats-grid" aria-label="Workout summary">
+    <article class="stat-card">
+      <span class="stat-label">EXERCISES</span>
+      <strong>{{ state.total_exercises }}</strong>
+      <span class="stat-note">in this workout</span>
+    </article>
+    <article class="stat-card">
+      <span class="stat-label">COMPLETED</span>
+      <strong>{{ completedExercises }}<small> / {{ state.total_exercises }}</small></strong>
+      <span class="stat-note">exercises finished</span>
+    </article>
+    <article class="stat-card">
+      <span class="stat-label">PROGRESS</span>
+      <strong>{{ state.progress | number: '1.0-0' }}<small>%</small></strong>
+      <div class="progress-track" role="progressbar"
+        [attr.aria-valuenow]="state.progress" aria-valuemin="0" aria-valuemax="100">
+        <span [style.width.%]="state.progress"></span>
+      </div>
+    </article>
+    <article class="stat-card">
+      <span class="stat-label">ESTIMATED REST</span>
+      <strong>{{ state.estimated_rest_seconds }}<small> sec</small></strong>
+      <span class="stat-note">between sets</span>
+    </article>
+  </section>
+
+  @if (errorMessage) {
+    <div class="error-banner" role="alert">
+      <span>{{ errorMessage }}</span>
+      <button type="button" class="text-button" (click)="loadState()">Retry</button>
+    </div>
+  }
+
+  <div class="content-grid">
+    <section class="panel routine-panel" aria-labelledby="routine-title">
+      <div class="panel-heading">
+        <div>
+          <p class="eyebrow">DOUBLY LINKED LIST</p>
+          <h2 id="routine-title">Your sequence</h2>
+        </div>
+        <span class="count-chip">{{ state.total_exercises }} EXERCISES</span>
+      </div>
+
+      @if (state.exercises.length === 0) {
+        <div class="empty-state">
+          <div class="empty-icon" aria-hidden="true">↔</div>
+          <h3>Your workout starts here</h3>
+          <p>Add an exercise to start organizing your training session.</p>
+        </div>
+      } @else {
+        <ol class="exercise-list">
+          @for (exercise of state.exercises; track exercise.id; let index = $index) {
+            <li class="exercise-row"
+              [class.is-active]="state.current?.id === exercise.id"
+              [class.is-complete]="exercise.completed">
+              <span class="exercise-index">
+                @if (exercise.completed) { <span aria-label="Completed">✓</span> }
+                @else { {{ (index + 1).toString().padStart(2, '0') }} }
+              </span>
+              <div class="exercise-info">
+                <div class="exercise-title">
+                  <h3>{{ exercise.name }}</h3>
+                  @if (state.current?.id === exercise.id && !exercise.completed) {
+                    <span class="active-tag">NOW</span>
+                  }
+                  @if (exercise.completed) {
+                    <span class="done-tag">DONE</span>
+                  }
+                </div>
+                <p>{{ exercise.sets }} sets <span>·</span>
+                  {{ exercise.reps }} reps <span>·</span>
+                  {{ exercise.weight_kg }} kg <span>·</span>
+                  {{ exercise.rest_seconds }} sec rest
+                </p>
+              </div>
+              <span class="row-arrow" aria-hidden="true">↗</span>
+            </li>
+          }
+        </ol>
+      }
+
+      <div class="routine-footer">
+        <span><i class="node-dot head-dot"></i>Head</span>
+        <span class="footer-line"></span>
+        <span><i class="node-dot"></i>Tail</span>
+        <span class="footer-hint">Navigate using the session controls</span>
+      </div>
+    </section>
+
+    <aside class="side-column">
+      <section class="panel active-panel" aria-labelledby="active-title">
+        <div class="panel-heading compact-heading">
+          <div>
+            <p class="eyebrow">
+              @if (isWorkoutComplete) { WORKOUT COMPLETE }
+              @else if (state.current?.completed) { EXERCISE COMPLETE }
+              @else { IN PROGRESS }
+            </p>
+            <h2 id="active-title">Current exercise</h2>
+          </div>
+          <span class="active-pulse" aria-label="Live"></span>
+        </div>
+        @if (state.current; as current) {
+          <div class="current-exercise">
+            <span class="current-number">
+              {{ exercisePosition(current.id) | number: '2.0-0' }}
+              <span>/ {{ state.total_exercises | number: '2.0-0' }}</span>
+            </span>
+            <h3>{{ current.name }}</h3>
+            <div class="current-metrics">
+              <div><strong>{{ current.sets }}</strong><span>SETS</span></div>
+              <div><strong>{{ current.reps }}</strong><span>REPS</span></div>
+              <div><strong>{{ current.weight_kg }}<small> kg</small></strong><span>WEIGHT</span></div>
+            </div>
+          </div>
+        } @else {
+          <div class="current-empty">
+            <span class="empty-icon small" aria-hidden="true">＋</span>
+            <p>Add an exercise to start your session.</p>
+          </div>
+        }
+        <div class="session-controls">
+          <button type="button" class="button button-secondary"
+            (click)="goBack()" [disabled]="isLoading || !canGoBack">
+            <span aria-hidden="true">←</span> Previous
+          </button>
+          <button type="button" class="button button-primary"
+            (click)="advance()"
+            [disabled]="isLoading || !state.current || isWorkoutComplete">
+            @if (isWorkoutComplete) { Workout complete }
+            @else { Complete and continue <span aria-hidden="true">→</span> }
+          </button>
+        </div>
+        <button type="button" class="skip-button"
+          (click)="skipCurrent()" [disabled]="isLoading || !state.current">
+          Skip and remove exercise
+        </button>
+      </section>
+
+      <section class="panel add-panel" aria-labelledby="add-title">
+        <div class="panel-heading compact-heading">
+          <div>
+            <p class="eyebrow">EDIT ON THE FLY</p>
+            <h2 id="add-title">Add an exercise</h2>
+          </div>
+          <span class="add-mark" aria-hidden="true">＋</span>
+        </div>
+        <form [formGroup]="exerciseForm" (ngSubmit)="saveExercise()">
+          <label class="field-label" for="exercise-name">Name</label>
+          <input id="exercise-name" type="text" formControlName="name"
+            placeholder="e.g. Bench press" autocomplete="off">
+          @if (exerciseForm.controls.name.touched && exerciseForm.controls.name.invalid) {
+            <span class="field-error">Enter an exercise name.</span>
+          }
+
+          <div class="form-grid">
+            <div>
+              <label class="field-label" for="exercise-sets">Sets</label>
+              <input id="exercise-sets" type="number" min="1" formControlName="sets">
+            </div>
+            <div>
+              <label class="field-label" for="exercise-reps">Repetitions</label>
+              <input id="exercise-reps" type="number" min="1" formControlName="reps">
+            </div>
+            <div>
+              <label class="field-label" for="exercise-weight">Weight (kg)</label>
+              <input id="exercise-weight" type="number" min="0" step="0.5" formControlName="weightKg">
+            </div>
+            <div>
+              <label class="field-label" for="exercise-rest">Rest (sec)</label>
+              <input id="exercise-rest" type="number" min="0" formControlName="restSeconds">
+            </div>
+          </div>
+
+          <label class="insert-option">
+            <input type="checkbox" [(ngModel)]="insertAfterCurrent"
+              [ngModelOptions]="{standalone: true}" [disabled]="!state.current">
+            <span>Insert after the current exercise</span>
+          </label>
+          <button type="submit" class="button button-add"
+            [disabled]="isLoading || exerciseForm.invalid">
+            <span aria-hidden="true">＋</span>
+            {{ insertAfterCurrent ? 'Insert into sequence' : 'Add to the end' }}
+          </button>
+        </form>
+      </section>
+    </aside>
+  </div>
+
+  <footer class="page-footer">
+    <span>MADE TO MOVE <span class="brand-dot">●</span></span>
+    <span>Your workout stays in memory while the backend is running.</span>
+  </footer>
+</main>

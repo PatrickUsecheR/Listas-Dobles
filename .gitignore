@@ -1,0 +1,42 @@
+# Python bytecode and test/type-check caches
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Python virtual environments
+.venv/
+venv/
+env/
+
+# Environment files and local secrets
+.env
+.env.*
+!.env.example
+
+# Node.js dependencies, logs, and generated Angular output
+frontend/node_modules/
+frontend/dist/
+frontend/.angular/
+frontend/coverage/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Build and temporary output
+build/
+dist/
+tmp/
+temp/
+
+# Editors and operating systems
+.idea/
+.vscode/
+.history/
+.DS_Store
+Thumbs.db
+desktop.ini

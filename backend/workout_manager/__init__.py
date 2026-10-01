@@ -1,0 +1,1 @@
+"""Workout manager application package."""

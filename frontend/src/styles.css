@@ -1,0 +1,31 @@
+:root {
+  color-scheme: light;
+  --ink: #20271c;
+  --muted: #858d7d;
+  --line: #e8ebe3;
+  --surface: #fff;
+  --lime: #b9da58;
+  --lime-dark: #77952d;
+  font-family: 'Segoe UI', Arial, sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  min-width: 320px;
+  min-height: 100vh;
+  margin: 0;
+  background: #f8f9f6;
+  color: var(--ink);
+}
+
+button,
+input {
+  font: inherit;
+}
